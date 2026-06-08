@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Virtual Wardrobe</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: #f7f4ef; color: #1a1410; min-height: 100vh; }
+
+    /* Header */
+    .header { background: #fff; border-bottom: 1px solid #ede8e0; position: sticky; top: 0; z-index: 50; }
+    .header-inner { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+    .header-top { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 8px; }
+    .header h1 { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; }
+    .header p { font-size: 11px; color: #9a8f82; margin-top: 2px; }
+    .tabs { display: flex; border-top: 1px solid #ede8e0; }
+    .tab { background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-size: 12px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; padding: 10px 18px; color: #9a8f82; transition: all 0.2s; font-family: inherit; }
+    .tab.active { color: #1a1410; border-bottom-color: #1a1410; }
+
+    /* Main */
+    .main { max-width: 860px; margin: 0 auto; padding: 20px 16px 80px; }
+
+    /* Buttons */
+    .btn { background: #1a1410; color: #fff; border: none; border-radius: 8px; padding: 11px 22px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .btn:hover { background: #2e2418; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-outline { background: transparent; color: #1a1410; border: 1.5px solid #1a1410; border-radius: 8px; padding: 10px 20px; font-size: 13px; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .btn-outline:hover { background: #1a1410; color: #fff; }
+    .btn-outline:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-sm { font-size: 12px; padding: 8px 16px; }
+    .btn-full { width: 100%; }
+
+    /* Category filter */
+    .cats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .cat { background: none; border: 1px solid #ddd8cf; border-radius: 20px; padding: 5px 13px; font-size: 12px; cursor: pointer; color: #7a6f63; transition: all 0.15s; font-family: inherit; }
+    .cat.active, .cat:hover { background: #1a1410; color: #fff; border-color: #1a1410; }
+
+    /* Clothing cards */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+    .cloth-card { background: #fff; border-radius: 12px; padding: 14px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; position: relative; }
+    .cloth-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+    .cloth-card.selected { border-color: #1a1410; background: #f0ece5; }
+    .cloth-card .emoji { font-size: 34px; text-align: center; margin-bottom: 8px; }
+    .cloth-card .name { font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cloth-card .tags { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 5px; }
+    .tag { font-size: 9px; background: #f0ece5; padding: 2px 6px; border-radius: 8px; color: #7a6f63; }
+    .remove-btn { position: absolute; top: 7px; right: 7px; background: none; border: none; cursor: pointer; color: #c0b8ad; font-size: 13px; }
+    .check-badge { position: absolute; top: 5px; right: 5px; background: #1a1410; color: #fff; width: 15px; height: 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; }
+
+    /* Color dot */
+    .cdot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); flex-shrink: 0; vertical-align: middle; margin-right: 4px; }
+
+    /* Build outfit layout */
+    .outfit-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .section-title { font-family: 'Cormorant Garamond', serif; font-size: 19px; font-weight: 600; margin-bottom: 14px; }
+    .slot-label { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: #9a8f82; margin-bottom: 4px; }
+    .slot { background: #fff; border: 2px dashed #ddd8cf; border-radius: 10px; min-height: 70px; display: flex; align-items: center; justify-content: center; color: #c0b8ad; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 9px; }
+    .slot-filled { background: #fff; border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; border: 1px solid #ede8e0; margin-bottom: 9px; }
+    .slot-filled .emoji { font-size: 22px; }
+    .slot-filled .info { flex: 1; }
+    .slot-filled .item-name { font-size: 13px; font-weight: 500; }
+    .slot-filled .item-sub { font-size: 10px; color: #9a8f82; margin-top: 2px; }
+
+    /* AI tip box */
+    .ai-box { margin-top: 10px; background: #faf6f0; border: 1px solid #e8d8c0; border-radius: 10px; padding: 13px 15px; }
+    .ai-label { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: #b08040; margin-bottom: 5px; }
+    .ai-text { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 15px; line-height: 1.6; color: #4a3820; }
+
+    /* Save outfit box */
+    .save-box { margin-top: 14px; background: #fff; border: 1px solid #ede8e0; border-radius: 12px; padding: 16px; }
+    .save-label { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: #9a8f82; margin-bottom: 10px; }
+    .inp { width: 100%; border: 1px solid #ddd8cf; border-radius: 8px; padding: 10px 13px; font-size: 14px; background: #fff; outline: none; color: #1a1410; font-family: inherit; margin-bottom: 8px; }
+    .inp:focus { border-color: #1a1410; }
+    .sel { width: 100%; border: 1px solid #ddd8cf; border-radius: 8px; padding: 10px 13px; font-size: 14px; background: #fff; color: #1a1410; cursor: pointer; font-family: inherit; outline: none; margin-bottom: 12px; }
+
+    /* Saved outfits */
+    .saved-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+    .saved-card { background: #fff; border-radius: 12px; padding: 18px; border: 1px solid #ede8e0; }
+    .saved-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+    .saved-items { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+    .saved-item { background: #f7f4ef; border-radius: 7px; padding: 6px 9px; display: flex; align-items: center; gap: 5px; }
+    .saved-item .emoji { font-size: 16px; }
+    .saved-item .n { font-size: 10px; font-weight: 500; }
+    .saved-item .c { font-size: 9px; color: #9a8f82; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: flex-end; justify-content: center; z-index: 200; }
+    .modal { background: #fff; border-radius: 18px 18px 0 0; padding: 26px 22px 38px; width: 100%; max-width: 480px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+    .modal h2 { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; }
+    .field-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #9a8f82; display: block; margin-bottom: 5px; }
+    .field { margin-bottom: 13px; }
+    .color-dots { display: flex; gap: 8px; flex-wrap: wrap; }
+    .color-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.12); cursor: pointer; transition: transform 0.15s; }
+    .color-dot:hover { transform: scale(1.2); }
+    .color-dot.active { outline: 2.5px solid #1a1410; outline-offset: 2px; }
+    .emoji-opts { display: flex; gap: 7px; }
+    .emoji-opt { font-size: 22px; background: transparent; border: 2px solid transparent; border-radius: 7px; padding: 5px; cursor: pointer; }
+    .emoji-opt.active { background: #f0ece5; border-color: #1a1410; }
+
+    /* Empty state */
+    .empty { text-align: center; padding: 60px 20px; color: #9a8f82; }
+    .empty .big { font-size: 44px; margin-bottom: 12px; }
+    .empty p { font-family: 'Cormorant Garamond', serif; font-size: 20px; margin-bottom: 16px; }
+
+    /* Animations */
+    @keyframes slideUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .slide-up { animation: slideUp 0.3s ease forwards; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .blink { animation: blink 1.4s ease infinite; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-thumb { background: #ddd8cf; border-radius: 2px; }
+
+    /* Picker scroll */
+    .picker-scroll { max-height: 500px; overflow-y: auto; padding-right: 4px; }
+
+    @media (max-width: 600px) {
+      .outfit-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+const CATEGORIES = ["All","Tops","Bottoms","Shoes","Outerwear","Accessories"];
+const EMOJI_MAP = { Tops:["👕","👔","🧥","👗"], Bottoms:["👖","🩲","🩳"], Shoes:["👟","👠","👢","🥾"], Outerwear:["🧥","🥼","🧣"], Accessories:["👜","🎒","🧢","🕶️"] };
+const COLORS = [
+  {name:"Black",hex:"#1a1a1a"},{name:"White",hex:"#f5f5f0"},{name:"Navy",hex:"#1e3a5f"},
+  {name:"Beige",hex:"#d4b896"},{name:"Red",hex:"#c0392b"},{name:"Olive",hex:"#6b7c3a"},
+  {name:"Grey",hex:"#8a8a8a"},{name:"Brown",hex:"#7d5a3c"},{name:"Pink",hex:"#e8a0b0"},{name:"Blue",hex:"#3a7bd5"}
+];
+const STYLES = ["Casual","Formal","Streetwear","Sporty","Vintage","Minimalist","Boho"];
+const OCCASIONS = ["Casual","Work","Evening Out","Weekend","Gym","Date Night","Travel"];
+const CAT_ORDER = ["Outerwear","Tops","Bottoms","Shoes","Accessories"];
+
+let state = {
+  wardrobe: [
+    {id:1,name:"White Tee",category:"Tops",color:"#f5f5f0",colorName:"White",style:"Casual",emoji:"👕"},
+    {id:2,name:"Black Blazer",category:"Tops",color:"#1a1a1a",colorName:"Black",style:"Formal",emoji:"🧥"},
+    {id:3,name:"Denim Jacket",category:"Outerwear",color:"#3a7bd5",colorName:"Blue",style:"Casual",emoji:"🧥"},
+    {id:4,name:"Slim Chinos",category:"Bottoms",color:"#d4b896",colorName:"Beige",style:"Casual",emoji:"👖"},
+    {id:5,name:"Black Jeans",category:"Bottoms",color:"#1a1a1a",colorName:"Black",style:"Streetwear",emoji:"👖"},
+    {id:6,name:"White Sneakers",category:"Shoes",color:"#f5f5f0",colorName:"White",style:"Casual",emoji:"👟"},
+    {id:7,name:"Leather Boots",category:"Shoes",color:"#7d5a3c",colorName:"Brown",style:"Vintage",emoji:"👢"},
+    {id:8,name:"Olive Trench",category:"Outerwear",color:"#6b7c3a",colorName:"Olive",style:"Minimalist",emoji:"🥼"},
+    {id:9,name:"Canvas Tote",category:"Accessories",color:"#d4b896",colorName:"Beige",style:"Casual",emoji:"👜"},
+    {id:10,name:"Navy Polo",category:"Tops",color:"#1e3a5f",colorName:"Navy",style:"Casual",emoji:"👔"},
+  ],
+  savedOutfits: [
+    {id:1,name:"Weekend Casual",items:[1,4,6,9],occasion:"Weekend"},
+    {id:2,name:"Smart Evening",items:[2,5,7],occasion:"Evening Out"},
+  ],
+  activeTab: "wardrobe",
+  filterCat: "All",
+  outfitItems: [],
+  outfitName: "",
+  outfitOccasion: "Casual",
+  showAddForm: false,
+  aiTip: null,
+  aiLoading: false,
+  newName: "",
+  newCat: "Tops",
+  newColor: {name:"Black",hex:"#1a1a1a"},
+  newStyle: "Casual",
+  newEmoji: "👕",
+  nextId: 11,
+};
+
+function set(updates) {
+  state = {...state, ...updates};
+  render();
+}
+
+function el(tag, props, ...children) {
+  const e = document.createElement(tag);
+  for (const [k,v] of Object.entries(props||{})) {
+    if (k === 'className') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (k === 'style' && typeof v === 'object') Object.assign(e.style, v);
+    else e.setAttribute(k, v);
+  }
+  for (const child of children.flat()) {
+    if (child == null) continue;
+    e.appendChild(typeof child === 'string' ? document.createTextNode(child) : child);
+  }
+  return e;
+}
+
+function toggleItem(item) {
+  const exists = state.outfitItems.find(i => i.id === item.id);
+  set({ outfitItems: exists ? state.outfitItems.filter(i => i.id !== item.id) : [...state.outfitItems, item], aiTip: null });
+}
+
+async function getAI() {
+  if (!state.outfitItems.length || state.aiLoading) return;
+  set({aiLoading: true, aiTip: null});
+  const selected = state.outfitItems.map(i => `${i.name} (${i.colorName}, ${i.style})`).join(", ");
+  const rest = state.wardrobe.filter(w => !state.outfitItems.find(o => o.id === w.id)).map(i => i.name).join(", ");
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{role:"user", content:`You are a friendly fashion stylist. Current outfit: ${selected}. Rest of wardrobe: ${rest}. Give a 2-3 sentence styling tip: how the combo works, one item to add/swap, and best occasion. Be warm and direct.`}]
+      })
+    });
+    const data = await res.json();
+    set({aiLoading: false, aiTip: data.content?.[0]?.text || "Great combo!"});
+  } catch { set({aiLoading: false, aiTip: "Couldn't load tip. Try again!"}); }
+}
+
+function renderWardrobe() {
+  const filtered = state.filterCat === "All" ? state.wardrobe : state.wardrobe.filter(i => i.category === state.filterCat);
+  const cats = el('div', {className:'cats'},
+    ...CATEGORIES.map(c => el('button', {className:'cat'+(state.filterCat===c?' active':''), onClick:()=>set({filterCat:c})}, c))
+  );
+  if (!filtered.length) {
+    return el('div', {className:'slide-up'},
+      cats,
+      el('div', {className:'empty'},
+        el('div', {className:'big'}, '👗'),
+        el('p', {}, 'No items yet'),
+        el('button', {className:'btn', onClick:()=>set({showAddForm:true})}, 'Add Clothes')
+      )
+    );
+  }
+  const grid = el('div', {className:'grid'},
+    ...filtered.map(item => {
+      const card = el('div', {className:'cloth-card', onClick:()=>{set({activeTab:'outfit'}); toggleItem(item);}},
+        el('button', {className:'remove-btn', onClick:e=>{e.stopPropagation(); set({wardrobe:state.wardrobe.filter(i=>i.id!==item.id), outfitItems:state.outfitItems.filter(i=>i.id!==item.id)});}}, '✕'),
+        el('div', {className:'emoji'}, item.emoji),
+        el('div', {style:{display:'flex',alignItems:'center'}},
+          el('span', {className:'cdot', style:{background:item.color}}),
+          el('span', {className:'name'}, item.name)
+        ),
+        el('div', {className:'tags'},
+          el('span', {className:'tag'}, item.category),
+          el('span', {className:'tag'}, item.style)
+        )
+      );
+      if (state.outfitItems.find(i=>i.id===item.id)) card.classList.add('selected');
+      return card;
+    })
+  );
+  return el('div', {className:'slide-up'}, cats, grid);
+}
+
+function renderOutfit() {
+  const filtered = state.filterCat === "All" ? state.wardrobe : state.wardrobe.filter(i => i.category === state.filterCat);
+
+  // Left panel
+  const leftSlots = CAT_ORDER.map(cat => {
+    const item = state.outfitItems.find(i => i.category === cat);
+    return el('div', {},
+      el('div', {className:'slot-label'}, cat),
+      item
+        ? el('div', {className:'slot-filled'},
+            el('span', {className:'emoji'}, item.emoji),
+            el('div', {className:'info'},
+              el('div', {className:'item-name'}, item.name),
+              el('div', {className:'item-sub'},
+                el('span', {className:'cdot', style:{background:item.color}}),
+                item.colorName + ' · ' + item.style
+              )
+            ),
+            el('button', {style:{background:'none',border:'none',cursor:'pointer',color:'#c0b8ad',fontSize:'15px'}, onClick:()=>toggleItem(item)}, '✕')
+          )
+        : el('div', {className:'slot'}, el('span', {}, 'empty'))
+    );
+  });
+
+  const aiBtn = el('button', {className:'btn-outline btn-full', style:{marginTop:'14px',fontSize:'12px',padding:'10px'}, onClick:getAI},
+    state.aiLoading ? '✨ Getting tip…' : '✨ AI Styling Tip'
+  );
+  if (state.aiLoading) { aiBtn.disabled = true; aiBtn.firstChild.className = 'blink'; }
+  if (!state.outfitItems.length) aiBtn.disabled = true;
+
+  const aiBox = state.aiTip ? el('div', {className:'ai-box slide-up'},
+    el('div', {className:'ai-label'}, 'AI Stylist'),
+    el('div', {className:'ai-text'}, state.aiTip)
+  ) : null;
+
+  const saveBox = state.outfitItems.length ? el('div', {className:'save-box slide-up'},
+    el('div', {className:'save-label'}, 'Save Outfit'),
+    el('input', {className:'inp', placeholder:'Outfit name…', value:state.outfitName, onInput:e=>set({outfitName:e.target.value})}),
+    (() => {
+      const s = el('select', {className:'sel', onChange:e=>set({outfitOccasion:e.target.value})});
+      OCCASIONS.forEach(o => { const opt = document.createElement('option'); opt.value=o; opt.textContent=o; if(o===state.outfitOccasion) opt.selected=true; s.appendChild(opt); });
+      return s;
+    })(),
+    el('button', {className:'btn btn-full', disabled:!state.outfitName.trim()||undefined, onClick:()=>{
+      if(!state.outfitItems.length||!state.outfitName.trim()) return;
+      set({savedOutfits:[...state.savedOutfits,{id:Date.now(),name:state.outfitName,items:state.outfitItems.map(i=>i.id),occasion:state.outfitOccasion}], outfitItems:[], outfitName:'', aiTip:null, activeTab:'saved'});
+    }}, 'Save Outfit')
+  ) : null;
+
+  const left = el('div', {},
+    el('div', {className:'section-title'}, 'Current Outfit ',
+      el('span', {style:{fontFamily:'DM Sans,sans-serif',fontSize:'11px',color:'#9a8f82',fontWeight:'400'}}, state.outfitItems.length + ' items')
+    ),
+    ...leftSlots,
+    aiBtn,
+    ...(aiBox ? [aiBox] : []),
+    ...(saveBox ? [saveBox] : [])
+  );
+
+  // Right panel - picker
+  const cats = el('div', {className:'cats', style:{marginBottom:'12px'}},
+    ...CATEGORIES.map(c => {
+      const b = el('button', {className:'cat'+(state.filterCat===c?' active':''), style:{fontSize:'11px',padding:'4px 10px'}, onClick:()=>set({filterCat:c})}, c);
+      return b;
+    })
+  );
+
+  const pickerGrid = el('div', {className:'grid picker-scroll'},
+    ...filtered.map(item => {
+      const isSelected = !!state.outfitItems.find(i=>i.id===item.id);
+      const card = el('div', {className:'cloth-card'+(isSelected?' selected':''), onClick:()=>toggleItem(item), style:{padding:'10px'}},
+        isSelected ? el('div', {className:'check-badge'}, '✓') : null,
+        el('div', {className:'emoji', style:{fontSize:'26px'}}, item.emoji),
+        el('div', {className:'name', style:{textAlign:'center',fontSize:'11px'}}, item.name),
+        el('div', {style:{display:'flex',alignItems:'center',justifyContent:'center',gap:'4px',marginTop:'3px'}},
+          el('span', {className:'cdot', style:{background:item.color}}),
+          el('span', {style:{fontSize:'9px',color:'#9a8f82'}}, item.colorName)
+        )
+      );
+      return card;
+    })
+  );
+
+  const right = el('div', {},
+    el('div', {className:'section-title'}, 'Pick Items'),
+    cats,
+    pickerGrid
+  );
+
+  return el('div', {className:'outfit-layout slide-up'}, left, right);
+}
+
+function renderSaved() {
+  if (!state.savedOutfits.length) {
+    return el('div', {className:'slide-up'},
+      el('div', {className:'empty'},
+        el('div', {className:'big'}, '🗂'),
+        el('p', {}, 'No saved outfits yet'),
+        el('button', {className:'btn', onClick:()=>set({activeTab:'outfit'})}, 'Build First Outfit')
+      )
+    );
+  }
+  return el('div', {className:'saved-grid slide-up'},
+    ...state.savedOutfits.map(outfit => {
+      const items = outfit.items.map(id=>state.wardrobe.find(w=>w.id===id)).filter(Boolean);
+      return el('div', {className:'saved-card'},
+        el('div', {style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'4px'}},
+          el('h3', {}, outfit.name),
+          el('button', {style:{background:'none',border:'none',cursor:'pointer',color:'#c0b8ad',fontSize:'15px'}, onClick:()=>set({savedOutfits:state.savedOutfits.filter(o=>o.id!==outfit.id)})}, '🗑')
+        ),
+        el('span', {className:'tag'}, outfit.occasion),
+        el('div', {className:'saved-items'},
+          ...items.map(item => el('div', {className:'saved-item'},
+            el('span', {className:'emoji'}, item.emoji),
+            el('div', {},
+              el('div', {className:'n'}, item.name),
+              el('div', {className:'c'},
+                el('span', {className:'cdot', style:{background:item.color}}),
+                item.colorName
+              )
+            )
+          ))
+        ),
+        el('button', {className:'btn-outline btn-full', style:{fontSize:'11px',padding:'7px'}, onClick:()=>{
+          const its = outfit.items.map(id=>state.wardrobe.find(w=>w.id===id)).filter(Boolean);
+          set({outfitItems:its, outfitName:outfit.name, outfitOccasion:outfit.occasion, activeTab:'outfit'});
+        }}, 'Edit Outfit')
+      );
+    })
+  );
+}
+
+function renderModal() {
+  if (!state.showAddForm) return null;
+  const catBtns = el('div', {className:'cats'},
+    ...["Tops","Bottoms","Shoes","Outerwear","Accessories"].map(c =>
+      el('button', {className:'cat'+(state.newCat===c?' active':''), onClick:()=>set({newCat:c, newEmoji:EMOJI_MAP[c]?.[0]||'👕'})}, c)
+    )
+  );
+  const colorDots = el('div', {className:'color-dots'},
+    ...COLORS.map(c => el('div', {className:'color-dot'+(state.newColor.name===c.name?' active':''), style:{background:c.hex}, title:c.name, onClick:()=>set({newColor:c})}, ''))
+  );
+  const emojis = el('div', {className:'emoji-opts'},
+    ...(EMOJI_MAP[state.newCat]||['👕']).map(e =>
+      el('button', {className:'emoji-opt'+(state.newEmoji===e?' active':''), onClick:()=>set({newEmoji:e})}, e)
+    )
+  );
+  const styleSelect = el('select', {className:'sel', onChange:e=>set({newStyle:e.target.value})});
+  STYLES.forEach(s => { const o=document.createElement('option'); o.value=s; o.textContent=s; if(s===state.newStyle) o.selected=true; styleSelect.appendChild(o); });
+
+  const nameInput = el('input', {className:'inp', placeholder:'e.g. Grey Hoodie', value:state.newName, onInput:e=>set({newName:e.target.value})});
+
+  const addBtn = el('button', {className:'btn btn-full', style:{padding:'12px'}, onClick:()=>{
+    if(!state.newName.trim()) return;
+    set({wardrobe:[...state.wardrobe,{id:state.nextId,name:state.newName,category:state.newCat,color:state.newColor.hex,colorName:state.newColor.name,style:state.newStyle,emoji:state.newEmoji}], nextId:state.nextId+1, newName:'', showAddForm:false});
+  }}, 'Add to Wardrobe');
+  if(!state.newName.trim()) addBtn.disabled = true;
+
+  return el('div', {className:'modal-overlay', onClick:e=>{ if(e.target.className==='modal-overlay') set({showAddForm:false}); }},
+    el('div', {className:'modal'},
+      el('div', {className:'modal-header'},
+        el('h2', {}, 'Add Clothing Item'),
+        el('button', {style:{background:'none',border:'none',cursor:'pointer',fontSize:'18px',color:'#9a8f82'}, onClick:()=>set({showAddForm:false})}, '✕')
+      ),
+      el('div', {className:'field'}, el('label', {className:'field-label'}, 'Name'), nameInput),
+      el('div', {className:'field'}, el('label', {className:'field-label'}, 'Category'), catBtns),
+      el('div', {className:'field'}, el('label', {className:'field-label'}, 'Color'), colorDots),
+      el('div', {className:'field'}, el('label', {className:'field-label'}, 'Icon'), emojis),
+      el('div', {className:'field'}, el('label', {className:'field-label'}, 'Style'), styleSelect),
+      addBtn
+    )
+  );
+}
+
+function render() {
+  const app = document.getElementById('app');
+  const header = el('div', {className:'header'},
+    el('div', {className:'header-inner'},
+      el('div', {className:'header-top'},
+        el('div', {},
+          el('h1', {}, 'My Wardrobe'),
+          el('p', {}, state.wardrobe.length + ' items · ' + state.savedOutfits.length + ' outfits')
+        ),
+        el('button', {className:'btn btn-sm', onClick:()=>set({showAddForm:true})}, '+ Add Item')
+      ),
+      el('div', {className:'tabs'},
+        ...(['wardrobe','outfit','saved']).map((t,i) =>
+          el('button', {className:'tab'+(state.activeTab===t?' active':''), onClick:()=>set({activeTab:t})},
+            ['👗 Wardrobe','✨ Build','🗂 Saved'][i]
+          )
+        )
+      )
+    )
+  );
+
+  const content = el('div', {className:'main'},
+    state.activeTab === 'wardrobe' ? renderWardrobe() :
+    state.activeTab === 'outfit' ? renderOutfit() :
+    renderSaved()
+  );
+
+  const modal = renderModal();
+
+  app.innerHTML = '';
+  app.appendChild(header);
+  app.appendChild(content);
+  if (modal) app.appendChild(modal);
+}
+
+render();
+</script>
+</body>
+</html>
